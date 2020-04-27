@@ -15,16 +15,20 @@ contract Election {
     // Candidate
     struct Candidate {
         uint id;
-        CandidateInfo info;
+        string name;
+        string bio;
+        string photo;
         address owner;
         uint voteCount;
     }
 
     // Read/Write Candidates
-    mapping(uint => Candidate) candidates;
+    mapping(uint => Candidate) public candidates;
 
     // Store number of Candidates
     uint public candidatesCount;
+
+    string public electionName;
 
     // Create candidate profiles
     function populateCandidateInfo() private {
@@ -35,15 +39,13 @@ contract Election {
 
     function addCandidate(CandidateInfo memory _info, address _owner) private {
         candidatesCount++;
-        candidates[candidatesCount] = Candidate(candidatesCount, CandidateInfo(_info.name, _info.bio, _info.photo), _owner, 0);
+        candidates[candidatesCount] = Candidate(candidatesCount, _info.name, _info.bio, _info.photo, _owner, 0);
     }
 
-    constructor() public {
+    constructor(string memory _name, address[] memory _candidates) public {
+        electionName = _name;
         populateCandidateInfo();
         candidatesCount = 0;
-    }
-
-    function addCandidates(address[] memory _candidates) public {
         for(uint i = 0; i < NUMBER_OF_CANDIDATES; i++) {
             addCandidate(candidateInfo[i], _candidates[i]);
         }
@@ -51,12 +53,17 @@ contract Election {
 
     function getCandidateName(uint id) public view returns(string memory) {
         require(id<=NUMBER_OF_CANDIDATES, "index out of bounds");
-        return candidates[id].info.name;
+        return candidates[id].name;
     }
 
     function getCandidateBio(uint id) public view returns(string memory) {
         require(id<=NUMBER_OF_CANDIDATES, "index out of bounds");
-        return candidates[id].info.bio;
+        return candidates[id].bio;
+    }
+
+    function getCandidatePhoto(uint id) public view returns(string memory) {
+        require(id<=NUMBER_OF_CANDIDATES, "index out of bounds");
+        return candidates[id].photo;
     }
 
     function getCandidateAddress(uint id) public view returns(address) {
