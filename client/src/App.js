@@ -5,7 +5,11 @@ import getWeb3 from "./getWeb3";
 import "./App.css";
 
 class App extends Component {
-  state = { value: "5", web3: null, accounts: null, contract: null };
+
+  constructor(props) {
+    super(props);
+    this.state = { value: null, web3: null, account: null, contract: null };
+  }
 
   componentDidMount = async () => {
     try {
@@ -25,7 +29,7 @@ class App extends Component {
 
       // Set web3, accounts, and contract to the state, and then proceed with an
       // example of interacting with the contract's methods.
-      this.setState({ web3, accounts, contract: instance }, this.runExample);
+      this.setState({ web3, account: accounts[0], contract: instance });
     } catch (error) {
       // Catch any errors for any of the above operations.
       alert(
@@ -36,35 +40,58 @@ class App extends Component {
   };
 
   runExample = async () => {
-    const { accounts, contract } = this.state;
+    try {
+      const { account, contract } = this.state;
 
-    // Stores a given value, 5 by default.
-    //await contract.methods.set(5).send({ from: accounts[0] });
+      // Get the value from the contract to prove it worked.
+      //const response = await contract.methods.candidatesCount().call();
+      const response = await contract.methods.getCandidateBio(1).call();
 
-    // Get the value from the contract to prove it worked.
-    //const response = await contract.methods.candidates().call();
-
-    // Update state with the result.
-    //this.setState({ value: response });
+      // Update state with the result.
+      this.setState({ value: response });
+    } catch (error) {
+      alert(
+        `Failed to run example. Check console for details.`,
+      );
+      console.error(error);
+    }
   };
+
+  beginElection = async() => {
+    try {
+      const { account, contract } = this.state;
+
+      await contract.methods.beginElection("Voting Test").send({ from: account });
+      const response = await contract.methods.electionName().call();
+
+      this.setState({ value: "Election name: " + response});
+    } catch (error) {
+      alert(
+        `Failed to begin election. Check console for details.`,
+      );
+      console.error(error);
+    }
+  }
 
   render() {
     if (!this.state.web3) {
-      return <div>Loading Web3, accounts, and contract...</div>;
+      return <h2>Loading Web3, accounts, and contract...</h2>;
     }
     return (
       <div className="App">
-        <h1>Good to Go!</h1>
-        <p>Your Truffle Box is installed and ready.</p>
-        <h2>Smart Contract Example</h2>
+        <h2>Election Contract Test</h2>
+        <p>Press <strong>left button</strong> to begin Election</p>
+        <p>Press <strong>right button</strong> to run example</p>
+        <button onClick={this.beginElection}>
+          Begin Election
+        </button>
+        <button onClick={this.runExample}>
+          Run Example
+        </button>
         <p>
-          If your contracts compiled and migrated successfully, below will show
-          a stored value of 5 (by default).
+        Current account address: <strong>{this.state.account}</strong>
         </p>
-        <p>
-          Try changing the value stored on <strong>line 40</strong> of App.js.
-        </p>
-        <div>The stored value is: {this.state.value}</div>
+        <div>{this.state.value}</div>
       </div>
     );
   }
