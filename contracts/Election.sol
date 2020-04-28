@@ -24,11 +24,15 @@ contract Election {
     // Read/Write Candidates
     mapping(uint => Candidate) public candidates;
 
+    // Store addresses of the accounts who has voted already.
+    mapping(address => bool) public voters;
+
     // Store number of Candidates
     uint public candidatesCount;
 
     address payable public owner;
     string public electionName;
+    uint public nrElection;
 
     // Create candidate profiles
     function populateCandidateInfo() private {
@@ -52,6 +56,7 @@ contract Election {
     }
 
     function beginElection(string memory _name) public ownerOnly {
+        nrElection = 1;
         electionName = _name;
         populateCandidateInfo();
         for(uint i = 0; i < numOfCandidates; i++) {
