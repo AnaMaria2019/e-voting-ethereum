@@ -10,7 +10,7 @@ class Main extends Component {
 				    	<tr>
 				      		<th scope="col">#</th>
 				      		<th scope="col">Name</th>
-				      		<th scope="col"></th>
+				      		<th scope="col">Vote</th>
 				    	</tr>
 				  	</thead>
 				  	<tbody id="candidatesList">
@@ -22,8 +22,8 @@ class Main extends Component {
 										<th scope="row">{candidate.id.toString()}</th>
 										<th scope="row"><Link to={url}>{candidate.name}</Link></th>
 										<td>
-										{	
-											!this.props.voted
+										{
+											!this.props.voted && !this.props.ended
 											?	<button name={candidate.id}
 														value={this.props.account}
 														className="btn btn-success"
@@ -33,7 +33,7 @@ class Main extends Component {
 												>
 													Vote
 												</button>
-											: null
+											: candidate.voteCount
 										}
 										</td>
 									</tr>

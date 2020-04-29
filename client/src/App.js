@@ -50,8 +50,9 @@ class App extends Component {
       const title = await contract.methods.electionName().call();
       const isOwner = await contract.methods.owner().call() === account;
       const voted = await contract.methods.voters(account).call();
+      const ended = await contract.methods.ended().call();
 
-      this.setState({ isOwner, started, title, voted });
+      this.setState({ isOwner, started, ended, title, voted });
 
     } catch (error) {
       alert(
@@ -93,8 +94,9 @@ class App extends Component {
     try {
       const { account, contract } = this.state;
       await contract.methods.endElection().send({ from: account });
-      this.setState({ ended: true });
+      const ended = await contract.methods.ended().call();
 
+      this.setState({ ended });
     } catch (error) {
       alert(
         `Failed to end election. Check console for details.`,
@@ -145,7 +147,10 @@ class App extends Component {
     let button, text;
 
     if (this.state.ended) {
-      console.log("d")
+      text = <p className="lead"><strong>Election</strong> ended</p>
+      if (this.state.candidates.length === 0 && this.state.candidatesCount === 0) {
+        this.loadCandidates();
+      }
     } else {
       if (this.state.started) {
         if (this.state.candidates.length === 0 && this.state.candidatesCount === 0) {
@@ -184,6 +189,7 @@ class App extends Component {
                         account={this.state.account}
                         vote={this.vote}
                         voted={this.state.voted}
+                        ended={this.state.ended}
                       />
                   </main>
                 </div>

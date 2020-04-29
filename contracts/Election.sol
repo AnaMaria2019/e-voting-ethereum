@@ -33,6 +33,7 @@ contract Election {
     address payable public owner;
     string public electionName;
     bool public started;
+    bool public ended;
     uint public nrVoters;
 
     // Create candidate profiles
@@ -45,6 +46,7 @@ contract Election {
     constructor() public {
         owner = msg.sender;
         started = false;
+        ended = false;
         nrVoters = 0;
     }
 
@@ -69,6 +71,12 @@ contract Election {
     }
 
     function endElection() public ownerOnly {
+        require(started == true, "election not started");
+        require(ended == false, "election already ended");
+        ended = true;
+    }
+
+    function destroyContract() public ownerOnly {
         selfdestruct(owner);
     }
 
@@ -92,7 +100,8 @@ contract Election {
         return candidates[id].voteCount;
     }
 
-    function vote(uint _id, address _voter) public payable{
+    function vote(uint _id, address _voter) public payable {
+        require(ended == false, "election already ended");
         require(!voters[_voter]);
         require(_id > 0 && _id <= candidatesCount);
         nrVoters++;
