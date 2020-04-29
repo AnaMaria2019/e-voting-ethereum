@@ -105,8 +105,8 @@ class App extends Component {
     if (!this.state.web3) {
       return <h2>Loading Web3, accounts, and contract...</h2>;
     }
-    button = null;
-    text = null;
+    var button = null;
+    var text = null;
     if (this.state.started) {
       if (this.state.candidates == [] && this.state.candidatesCount == 0) {
         this.loadCandidates();
