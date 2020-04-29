@@ -11,7 +11,7 @@ class App extends Component {
 
   constructor(props) {
     super(props);
-    this.state = { value: null, web3: null, account: null, contract: null, candidates: [], candidatesCount: 0 };
+    this.state = { started: false, title: null, web3: null, account: null, contract: null, candidates: [], candidatesCount: 0 };
   }
 
   componentDidMount = async () => {
@@ -30,7 +30,7 @@ class App extends Component {
         deployedNetwork && deployedNetwork.address,
       );
 
-      this.setState({ web3, account: accounts[0], contract: instance });
+      this.setState({ web3, account: accounts[0], contract: instance }, this.electionStarted);
     } catch (error) {
       // Catch any errors for any of the above operations.
       alert(
@@ -39,6 +39,21 @@ class App extends Component {
       console.error(error);
     }
   };
+
+  electionStarted = async () => {
+    try {
+      const { contract } = this.state;
+
+      const started = await contract.methods.started().call();
+      const title = await contract.methods.electionName().call();
+      this.setState({ started, title });
+    } catch (error) {
+      alert(
+        `Failed to fetch election data. Check console for details.`,
+      );
+      console.error(error);
+    }
+  }
 
   beginElection = async() => {
     try {
@@ -49,7 +64,7 @@ class App extends Component {
       const electionName = await contract.methods.electionName().call();
       const candidatesCount = await contract.methods.candidatesCount().call();
 
-      this.setState({ value: "Election name: " + electionName, candidatesCount });
+      this.setState({ title: "Election name: " + electionName, candidatesCount });
       // Load candidates
       for (var i = 1; i <= candidatesCount; i++) {
         const candidate = await contract.methods.candidates(i).call();
@@ -60,19 +75,6 @@ class App extends Component {
     } catch (error) {
       alert(
         `Failed to begin election. Check console for details.`,
-      );
-      console.error(error);
-    }
-  }
-
-  electionStarted = async() => {
-    try {
-      const { contract } = this.state;
-      const response = await contract.methods.started().call();
-      return (response);
-    } catch (error) {
-      alert(
-        `Failed to check if election started. Check console for details.`,
       );
       console.error(error);
     }
@@ -103,11 +105,11 @@ class App extends Component {
     if (!this.state.web3) {
       return <h2>Loading Web3, accounts, and contract...</h2>;
     }
-    if (electionStarted) {
-      button = null;
-      text = null;
+    button = null;
+    text = null;
+    if (this.state.started) {
       if (this.state.candidates == [] && this.state.candidatesCount == 0) {
-        loadCandidates();
+        this.loadCandidates();
       }
     } else {
       text = <p className="lead">Press <strong>button</strong> to begin Election</p>
@@ -120,6 +122,7 @@ class App extends Component {
             <Route exact path="/">
               <div className="jumbotron">
                 <h1 className="display-4"> Election </h1>
+                <strong>{this.state.title}</strong>
                 {text}
                 {button}
                 <p className="lead">Current account address: <strong>{this.state.account}</strong></p>

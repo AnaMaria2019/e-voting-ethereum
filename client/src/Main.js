@@ -22,8 +22,8 @@ class Main extends Component {
 										<th scope="row">{candidate.id.toString()}</th>
 										<th scope="row"><Link to={url}>{candidate.name}</Link></th>
 									</tr>
-								);
-							});
+								)
+							})
 						}
 					</tbody>
 				</table>
