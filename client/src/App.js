@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import ElectionContract from "./contracts/Election.json";
 import getWeb3 from "./getWeb3";
+import Main from './Main.js';
 
 import "./App.css";
 
@@ -8,7 +9,7 @@ class App extends Component {
 
   constructor(props) {
     super(props);
-    this.state = { value: null, web3: null, account: null, contract: null };
+    this.state = { value: null, web3: null, account: null, contract: null, candidates: [], candidatesCount: 0};
   }
 
   componentDidMount = async () => {
@@ -30,6 +31,24 @@ class App extends Component {
       // Set web3, accounts, and contract to the state, and then proceed with an
       // example of interacting with the contract's methods.
       this.setState({ web3, account: accounts[0], contract: instance });
+
+      const candidatesCount = await instance.methods.candidatesCount().call();
+      console.log(candidatesCount.toString());
+
+      // Load candidates
+      this.setState({ candidatesCount });
+      for(var i = 1; i <= candidatesCount; i++){
+        const candidate = await instance.methods.candidates(i).call();
+        this.setState({
+          candidates: [...this.state.candidates, candidate]
+        });
+      }
+
+
+      const nrElection = await instance.methods.nrElection().call();
+      console.log(nrElection.toString());
+
+
     } catch (error) {
       // Catch any errors for any of the above operations.
       alert(
@@ -61,6 +80,10 @@ class App extends Component {
     try {
       const { account, contract } = this.state;
 
+      const nrElection = await contract.methods.nrElection().call();
+      if(nrElection)
+        throw Error;
+
       await contract.methods.beginElection("Voting Test").send({ from: account });
       const response = await contract.methods.electionName().call();
 
@@ -78,20 +101,33 @@ class App extends Component {
       return <h2>Loading Web3, accounts, and contract...</h2>;
     }
     return (
-      <div className="App">
-        <h2>Election Contract Test</h2>
-        <p>Press <strong>left button</strong> to begin Election</p>
-        <p>Press <strong>right button</strong> to run example</p>
-        <button onClick={this.beginElection}>
+      <div className="App container-fluid">
+        <div className="jumbotron">
+          <h1 className="display-4"> Election </h1>
+          <p className="lead">Press <strong>left button</strong> to begin Election</p>
+          <p className="lead">Press <strong>right button</strong> to run example</p>
+          
+          <button type="button" className="btn btn-info" onClick={this.beginElection}>
           Begin Election
-        </button>
-        <button onClick={this.runExample}>
+          </button>
+
+          <button type="button" className="btn btn-info" onClick={this.runExample}>
           Run Example
-        </button>
-        <p>
-        Current account address: <strong>{this.state.account}</strong>
-        </p>
-        <div>{this.state.value}</div>
+          </button>
+
+          <p className="lead">Current account address: <strong>{this.state.account}</strong></p>
+        </div>
+
+        <div className="container">
+          <div className="row">
+            <main role="main" className="col-lg-12 d-flex">
+                <Main
+                  candidates={this.state.candidates}
+                />
+            </main>
+          </div>
+        </div>
+
       </div>
     );
   }
