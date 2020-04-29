@@ -1,6 +1,8 @@
 import React, { Component } from "react";
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom"
 import ElectionContract from "./contracts/Election.json";
 import getWeb3 from "./getWeb3";
+import CandidateProfile from "./CandidateProfile.js";
 import Main from './Main.js';
 
 import "./App.css";
@@ -9,7 +11,7 @@ class App extends Component {
 
   constructor(props) {
     super(props);
-    this.state = { value: null, web3: null, account: null, contract: null, candidates: [], candidatesCount: 0};
+    this.state = { started: false, title: null, web3: null, account: null, contract: null, candidates: [], candidatesCount: 0 };
   }
 
   componentDidMount = async () => {
@@ -28,27 +30,7 @@ class App extends Component {
         deployedNetwork && deployedNetwork.address,
       );
 
-      // Set web3, accounts, and contract to the state, and then proceed with an
-      // example of interacting with the contract's methods.
-      this.setState({ web3, account: accounts[0], contract: instance });
-
-      const candidatesCount = await instance.methods.candidatesCount().call();
-      console.log(candidatesCount.toString());
-
-      // Load candidates
-      this.setState({ candidatesCount });
-      for(var i = 1; i <= candidatesCount; i++){
-        const candidate = await instance.methods.candidates(i).call();
-        this.setState({
-          candidates: [...this.state.candidates, candidate]
-        });
-      }
-
-
-      const nrElection = await instance.methods.nrElection().call();
-      console.log(nrElection.toString());
-
-
+      this.setState({ web3, account: accounts[0], contract: instance }, this.electionStarted);
     } catch (error) {
       // Catch any errors for any of the above operations.
       alert(
@@ -58,39 +40,65 @@ class App extends Component {
     }
   };
 
-  runExample = async () => {
+  electionStarted = async () => {
     try {
-      const { account, contract } = this.state;
+      const { contract } = this.state;
 
-      // Get the value from the contract to prove it worked.
-      //const response = await contract.methods.candidatesCount().call();
-      const response = await contract.methods.getCandidateBio(1).call();
-
-      // Update state with the result.
-      this.setState({ value: response });
+      const started = await contract.methods.started().call();
+      const title = await contract.methods.electionName().call();
+      this.setState({ started, title: "Election name: " + title });
     } catch (error) {
       alert(
-        `Failed to run example. Check console for details.`,
+        `Failed to fetch election data. Check console for details.`,
       );
       console.error(error);
     }
-  };
+  }
 
   beginElection = async() => {
     try {
       const { account, contract } = this.state;
 
-      const nrElection = await contract.methods.nrElection().call();
-      if(nrElection)
-        throw Error;
-
       await contract.methods.beginElection("Voting Test").send({ from: account });
-      const response = await contract.methods.electionName().call();
 
-      this.setState({ value: "Election name: " + response});
+      const electionName = await contract.methods.electionName().call();
+      const candidatesCount = await contract.methods.candidatesCount().call();
+
+      this.setState({ title: "Election name: " + electionName, candidatesCount });
+      // Load candidates
+      for (var i = 1; i <= candidatesCount; i++) {
+        const candidate = await contract.methods.candidates(i).call();
+        this.setState({
+          candidates: [...this.state.candidates, candidate]
+        });
+      }
+      const started = await contract.methods.started().call();
+      this.setState({ started });
+
     } catch (error) {
       alert(
         `Failed to begin election. Check console for details.`,
+      );
+      console.error(error);
+    }
+  }
+
+  loadCandidates = async() => {
+    try {
+      const { contract } = this.state;
+      const candidatesCount = await contract.methods.candidatesCount().call();
+
+      this.setState({ candidatesCount });
+      // Load candidates
+      for (var i = 1; i <= candidatesCount; i++) {
+        const candidate = await contract.methods.candidates(i).call();
+        this.setState({
+          candidates: [...this.state.candidates, candidate]
+        });
+      }
+    } catch (error) {
+      alert(
+        `Failed to load Candidates. Check console for details.`,
       );
       console.error(error);
     }
@@ -100,35 +108,43 @@ class App extends Component {
     if (!this.state.web3) {
       return <h2>Loading Web3, accounts, and contract...</h2>;
     }
+    let button = null;
+    let text = null;
+    if (this.state.started) {
+      if (this.state.candidates === [] && this.state.candidatesCount === 0) {
+        this.loadCandidates();
+      }
+    } else {
+      text = <p className="lead">Press <strong>button</strong> to begin Election</p>
+      button = <button type="button" className="btn btn-info" onClick={this.beginElection}>Begin Election</button>
+    }
     return (
-      <div className="App container-fluid">
-        <div className="jumbotron">
-          <h1 className="display-4"> Election </h1>
-          <p className="lead">Press <strong>left button</strong> to begin Election</p>
-          <p className="lead">Press <strong>right button</strong> to run example</p>
-          
-          <button type="button" className="btn btn-info" onClick={this.beginElection}>
-          Begin Election
-          </button>
+      <Router>
+        <div className="App container-fluid">
+          <Switch>
+            <Route exact path="/">
+              <div className="jumbotron">
+                <h1 className="display-4"> Election </h1>
+                <strong>{this.state.title}</strong>
+                {text}
+                {button}
+                <p className="lead">Current account address: <strong>{this.state.account}</strong></p>
+              </div>
 
-          <button type="button" className="btn btn-info" onClick={this.runExample}>
-          Run Example
-          </button>
-
-          <p className="lead">Current account address: <strong>{this.state.account}</strong></p>
+              <div className="container">
+                <div className="row">
+                  <main role="main" className="col-lg-12 d-flex">
+                      <Main
+                        candidates={this.state.candidates}
+                      />
+                  </main>
+                </div>
+              </div>
+            </Route>
+            <Route path="/candidate-:id" children={<CandidateProfile contract={ this.state.contract }/>} />
+          </Switch>
         </div>
-
-        <div className="container">
-          <div className="row">
-            <main role="main" className="col-lg-12 d-flex">
-                <Main
-                  candidates={this.state.candidates}
-                />
-            </main>
-          </div>
-        </div>
-
-      </div>
+      </Router>
     );
   }
 }
