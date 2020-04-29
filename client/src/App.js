@@ -111,7 +111,7 @@ class App extends Component {
     let button = null;
     let text = null;
     if (this.state.started) {
-      if (this.state.candidates === [] && this.state.candidatesCount === 0) {
+      if (this.state.candidates.length === 0 && this.state.candidatesCount === 0) {
         this.loadCandidates();
       }
     } else {
