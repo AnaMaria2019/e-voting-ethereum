@@ -32,7 +32,7 @@ class CandidateProfile extends Component {
                             <p>{this.state.bio}</p>
                         </Col>
                         <Col>
-                            <img className="fluid" height="500" float="right" src={this.state.photo} />
+                            <img className="fluid" height="500" float="right" src={this.state.photo} alt="photo"/>
                         </Col>
                     </Row>
                 </Container>

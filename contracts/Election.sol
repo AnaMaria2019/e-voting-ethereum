@@ -53,7 +53,7 @@ contract Election {
     }
 
     function beginElection(string memory _name) public ownerOnly {
-        require(!started, "election already started");
+        require(started == false, "election already started");
         started = true;
         electionName = _name;
         populateCandidateInfo();
