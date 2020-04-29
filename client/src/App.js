@@ -11,9 +11,10 @@ class App extends Component {
 
   constructor(props) {
     super(props);
-    this.state = { started: false, title: null, web3: null, account: null, contract: null, candidates: [], candidatesCount: 0, voted: '' };
+    this.state = { isOwner: false, started: false, ended: false, title: null, web3: null, account: null, contract: null, candidates: [], candidatesCount: 0, voted: ''};
     this.vote = this.vote.bind(this);
   }
+
 
   componentDidMount = async () => {
     try {
@@ -32,10 +33,6 @@ class App extends Component {
       );
 
       this.setState({ web3, account: accounts[0], contract: instance }, this.electionStarted);
-
-      const voted = await instance.methods.voters(this.state.account).call()
-      this.setState({voted})
-
     } catch (error) {
       // Catch any errors for any of the above operations.
       alert(
@@ -47,11 +44,15 @@ class App extends Component {
 
   electionStarted = async () => {
     try {
-      const { contract } = this.state;
+      const { account, contract } = this.state;
 
       const started = await contract.methods.started().call();
       const title = await contract.methods.electionName().call();
-      this.setState({ started, title: "Election name: " + title });
+      const isOwner = await contract.methods.owner().call() === account;
+      const voted = await contract.methods.voters(account).call();
+
+      this.setState({ isOwner, started, title, voted });
+
     } catch (error) {
       alert(
         `Failed to fetch election data. Check console for details.`,
@@ -64,12 +65,12 @@ class App extends Component {
     try {
       const { account, contract } = this.state;
 
-      await contract.methods.beginElection("Voting Test").send({ from: account });
+      await contract.methods.beginElection("Vote for the next Headmaster of Hogwarts").send({ from: account });
 
       const electionName = await contract.methods.electionName().call();
       const candidatesCount = await contract.methods.candidatesCount().call();
 
-      this.setState({ title: "Election name: " + electionName, candidatesCount });
+      this.setState({ title: electionName, candidatesCount });
       // Load candidates
       for (var i = 1; i <= candidatesCount; i++) {
         const candidate = await contract.methods.candidates(i).call();
@@ -83,6 +84,20 @@ class App extends Component {
     } catch (error) {
       alert(
         `Failed to begin election. Check console for details.`,
+      );
+      console.error(error);
+    }
+  }
+
+  endElection = async() => {
+    try {
+      const { account, contract } = this.state;
+      await contract.methods.endElection().send({ from: account });
+      this.setState({ ended: true });
+
+    } catch (error) {
+      alert(
+        `Failed to end election. Check console for details.`,
       );
       console.error(error);
     }
@@ -109,25 +124,45 @@ class App extends Component {
     }
   }
 
-  vote(id, account) {
-    this.state.contract.methods.vote(id, account).send({from: account});
-  }
+  vote = async(id, account) => {
+    try{
+      const { contract } = this.state;
+      await contract.methods.vote(id, account).send({from: account});
 
+      this.setState({ voted: true });
+    } catch (error) {
+      alert(
+        `Failed to vote Candidate. Check console for details.`,
+      );
+      console.error(error);
+    }
+  }
 
   render() {
     if (!this.state.web3) {
       return <h2>Loading Web3, accounts, and contract...</h2>;
     }
-    let button = null;
-    let text = null;
-    if (this.state.started) {
-      if (this.state.candidates.length === 0 && this.state.candidatesCount === 0) {
-        this.loadCandidates();
-      }
+    let button, text;
+
+    if (this.state.ended) {
+      console.log("d")
     } else {
-      text = <p className="lead">Press <strong>button</strong> to begin Election</p>
-      button = <button type="button" className="btn btn-info" onClick={this.beginElection}>Begin Election</button>
+      if (this.state.started) {
+        if (this.state.candidates.length === 0 && this.state.candidatesCount === 0) {
+          this.loadCandidates();
+        }
+        if (this.state.isOwner) {
+          text = <p className="lead">Press <strong>button</strong> to end Election</p>
+          button = <button type="button" className="btn btn-danger" onClick={this.endElection}>End Election</button>
+        }
+      } else if (this.state.isOwner) {
+        text = <p className="lead">Press <strong>button</strong> to begin Election</p>
+        button = <button type="button" className="btn btn-info" onClick={this.beginElection}>Begin Election</button>
+      } else {
+        text = <p className="lead"><strong>Election</strong> not started yet</p>
+      }
     }
+
     return (
       <Router>
         <div className="App container-fluid">
@@ -135,10 +170,10 @@ class App extends Component {
             <Route exact path="/">
               <div className="jumbotron">
                 <h1 className="display-4"> Election </h1>
-                <strong>{this.state.title}</strong>
+                <p className="lead">Current account address: <strong>{this.state.account}</strong></p>
                 {text}
                 {button}
-                <p className="lead">Current account address: <strong>{this.state.account}</strong></p>
+                <h3 className="mt-4">{this.state.title}</h3>
               </div>
 
               <div className="container">
