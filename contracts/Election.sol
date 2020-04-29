@@ -24,6 +24,9 @@ contract Election {
     // Read/Write Candidates
     mapping(uint => Candidate) public candidates;
 
+    // Store addresses of the accounts who has voted already.
+    mapping(address => bool) public voters;
+
     // Store number of Candidates
     uint public candidatesCount;
 
