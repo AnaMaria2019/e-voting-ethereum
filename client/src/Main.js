@@ -21,6 +21,21 @@ class Main extends Component {
 									<tr key={key}>
 										<th scope="row">{candidate.id.toString()}</th>
 										<th scope="row"><Link to={url}>{candidate.name}</Link></th>
+										<td>
+										{	
+											!this.props.voted
+											?	<button name={candidate.id}
+														value={this.props.account}
+														className="btn btn-success"
+														onClick={(event) => {
+															this.props.vote(event.target.name, event.target.value)
+														}}
+												>
+													Vote
+												</button>
+											: null
+										}
+										</td>
 									</tr>
 								)
 							})

@@ -5,7 +5,7 @@ import { Container, Row, Col } from "react-bootstrap";
 class CandidateProfile extends Component {
     constructor(props) {
         super(props);
-        this.state = { name: null, bio: null, photo: null }
+        this.state = { name: null, bio: null, photo: null, nrVoters: null }
     }
 
     componentDidMount = async () => {
@@ -17,7 +17,8 @@ class CandidateProfile extends Component {
         const candidateName = await this.props.contract.methods.getCandidateName(id).call();
         const candidateBio = await this.props.contract.methods.getCandidateBio(id).call();
         const candidatePhoto = await this.props.contract.methods.getCandidatePhoto(id).call();
-        this.setState({ name: candidateName, bio: candidateBio, photo: candidatePhoto });
+        const candidateNrVoters = await this.props.contract.methods.getCandidateVotes(id).call();
+        this.setState({ name: candidateName, bio: candidateBio, photo: candidatePhoto, nrVoters: candidateNrVoters });
     }
 
     render () {
@@ -30,6 +31,7 @@ class CandidateProfile extends Component {
                         <Col>
                             <h3 className="mb-3">{this.state.name}</h3>
                             <p>{this.state.bio}</p>
+                            <h3 className="float-center"> Numarul de voturi: <p> {this.state.nrVoters} </p> </h3>
                         </Col>
                         <Col>
                             <img className="fluid" height="500" float="right" src={this.state.photo} alt="photo"/>

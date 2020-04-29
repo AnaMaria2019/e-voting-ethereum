@@ -33,6 +33,7 @@ contract Election {
     address payable public owner;
     string public electionName;
     bool public started;
+    uint public nrVoters;
 
     // Create candidate profiles
     function populateCandidateInfo() private {
@@ -44,6 +45,7 @@ contract Election {
     constructor() public {
         owner = msg.sender;
         started = false;
+        nrVoters = 0;
     }
 
     modifier ownerOnly() {
@@ -88,5 +90,13 @@ contract Election {
     function getCandidateVotes(uint id) public view returns(uint) {
         require(id<=numOfCandidates, "index out of bounds");
         return candidates[id].voteCount;
+    }
+
+    function vote(uint _id, address _voter) public payable{
+        require(!voters[_voter]);
+        require(_id > 0 && _id <= candidatesCount);
+        nrVoters++;
+        voters[_voter] = true;
+        candidates[_id].voteCount++;
     }
 }

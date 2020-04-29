@@ -11,7 +11,8 @@ class App extends Component {
 
   constructor(props) {
     super(props);
-    this.state = { started: false, title: null, web3: null, account: null, contract: null, candidates: [], candidatesCount: 0 };
+    this.state = { started: false, title: null, web3: null, account: null, contract: null, candidates: [], candidatesCount: 0, voted: '' };
+    this.vote = this.vote.bind(this);
   }
 
   componentDidMount = async () => {
@@ -31,6 +32,10 @@ class App extends Component {
       );
 
       this.setState({ web3, account: accounts[0], contract: instance }, this.electionStarted);
+
+      const voted = await instance.methods.voters(this.state.account).call()
+      this.setState({voted})
+
     } catch (error) {
       // Catch any errors for any of the above operations.
       alert(
@@ -104,6 +109,11 @@ class App extends Component {
     }
   }
 
+  vote(id, account) {
+    this.state.contract.methods.vote(id, account).send({from: account});
+  }
+
+
   render() {
     if (!this.state.web3) {
       return <h2>Loading Web3, accounts, and contract...</h2>;
@@ -136,6 +146,9 @@ class App extends Component {
                   <main role="main" className="col-lg-12 d-flex">
                       <Main
                         candidates={this.state.candidates}
+                        account={this.state.account}
+                        vote={this.vote}
+                        voted={this.state.voted}
                       />
                   </main>
                 </div>
