@@ -40,6 +40,7 @@ contract Election {
 
     constructor() public {
         owner = msg.sender;
+        started = false;
     }
 
     modifier ownerOnly() {
