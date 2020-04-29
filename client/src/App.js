@@ -46,7 +46,7 @@ class App extends Component {
 
       const started = await contract.methods.started().call();
       const title = await contract.methods.electionName().call();
-      this.setState({ started, title });
+      this.setState({ started, title: "Election name: " + title });
     } catch (error) {
       alert(
         `Failed to fetch election data. Check console for details.`,
@@ -72,6 +72,9 @@ class App extends Component {
           candidates: [...this.state.candidates, candidate]
         });
       }
+      const started = await contract.methods.started().call();
+      this.setState({ started });
+
     } catch (error) {
       alert(
         `Failed to begin election. Check console for details.`,
@@ -105,10 +108,10 @@ class App extends Component {
     if (!this.state.web3) {
       return <h2>Loading Web3, accounts, and contract...</h2>;
     }
-    var button = null;
-    var text = null;
+    let button = null;
+    let text = null;
     if (this.state.started) {
-      if (this.state.candidates == [] && this.state.candidatesCount == 0) {
+      if (this.state.candidates === [] && this.state.candidatesCount === 0) {
         this.loadCandidates();
       }
     } else {
