@@ -29,6 +29,7 @@ contract Election {
 
     address payable public owner;
     string public electionName;
+    bool public started;
 
     // Create candidate profiles
     function populateCandidateInfo() private {
@@ -52,6 +53,8 @@ contract Election {
     }
 
     function beginElection(string memory _name) public ownerOnly {
+        require(!started, "election already started");
+        started = true;
         electionName = _name;
         populateCandidateInfo();
         for(uint i = 0; i < numOfCandidates; i++) {
