@@ -3,6 +3,7 @@ E-Voting small app with ethereum smart contracts
 
 ### Prerequisites
 * Ganache - verison 2.1.2.0
+* MetaMask - Chrome extension
 * Truffle - version v5.1.20
 * Solidity - version v0.5.16 (solc-js)
 * Node - version v12.16.1
@@ -13,14 +14,16 @@ E-Voting small app with ethereum smart contracts
     `git clone git@github.com:Ninjseal/e-voting-ethereum.git`
 2. Open Ganache and add this project to personal workspace:
     NEW WORKSPACE -> ADD PROJECT -> Find truffle-config.js file -> SAVE WORKSPACE
-3. Navigate to e-voting-ethereum folder on local
-4. Compile truffle contracts and make migrations:
+3. Add in MetaMask the local network: Custom RPC -> Network Name: <name> -> New RPC URL: http://127.0.0.1:7545 -> Chain ID: <chain_id>
+4. Select in MetaMask your local netword and import the accounts from Ganache
+5. Navigate to e-voting-ethereum folder on local
+6. Compile truffle contracts and make migrations:
     `truffle compile && truffle migrate`
-5. Build node modules:
+7. Build node modules:
     `cd client && npm install`
-6. Start react application (inside client folder):
+8. Start react application (inside client folder):
     `npm run start`
-7. Go to <strong>localhost:3000</strong> inside browser and you're <strong>DONE!</strong> :)
+9. Go to <strong>localhost:3000</strong> inside browser and you're <strong>DONE!</strong> :)
 
 
 <strong> Other notable commands: </strong>
