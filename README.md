@@ -2,7 +2,7 @@
 E-Voting small app with ethereum smart contracts
 
 ### Prerequisites
-
+* Ganache - verison 2.1.2.0
 * Truffle - version v5.1.20
 * Solidity - version v0.5.16 (solc-js)
 * Node - version v12.16.1
