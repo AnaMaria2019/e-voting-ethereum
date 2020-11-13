@@ -1,6 +1,13 @@
 # e-voting-ethereum
 E-Voting small app with ethereum smart contracts
 
+### Prerequisites
+
+* Truffle - version v5.1.20
+* Solidity - version v0.5.16 (solc-js)
+* Node - version v12.16.1
+* Web3.js - version v1.2.1
+
 <strong> Setup steps: </strong>
 1. Clone repository on local: 
     `git clone git@github.com:Ninjseal/e-voting-ethereum.git`
